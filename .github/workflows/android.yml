@@ -19,26 +19,30 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.5'
+
       - name: Extract project
         run: |
-          unzip KOP-IMILK-Android-Project.zip -d source
-          WRAPPER=$(find source -name gradlew -type f | head -n 1)
-          test -n "$WRAPPER"
-          chmod +x "$WRAPPER"
-          echo "PROJECT_DIR=$(dirname "$WRAPPER")" >> "$GITHUB_ENV"
+          rm -rf source
+          mkdir -p source
+          unzip -o KOP-IMILK-Android-Project.zip -d source || true
+          ls -R source | head -n 100
 
       - name: Build APK
         run: |
+          PROJECT_DIR=$(find source -name "build.gradle.kts" | head -n 1 | xargs dirname)
+          echo "Project di: $PROJECT_DIR"
           cd "$PROJECT_DIR"
-          ./gradlew assembleDebug
+          gradle assembleDebug --stacktrace
 
       - name: Collect APK
-        run: |
-          find source -path '*/build/outputs/apk/debug/*.apk' -type f -exec cp {} KOP-IMILK.apk \;
-          test -f KOP-IMILK.apk
-
-      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: KOP-IMILK-APK
-          path: KOP-IMILK.apk
+          path: "**/build/outputs/apk/debug/*.apk"
