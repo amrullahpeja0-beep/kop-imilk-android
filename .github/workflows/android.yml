@@ -1,4 +1,3 @@
-
 name: Build KOP-IMILK APK
 
 on:
@@ -18,9 +17,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
