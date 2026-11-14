@@ -1,0 +1,44 @@
+
+name: Build KOP-IMILK APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Extract project
+        run: |
+          unzip KOP-IMILK-Android-Project.zip -d source
+          WRAPPER=$(find source -name gradlew -type f | head -n 1)
+          test -n "$WRAPPER"
+          chmod +x "$WRAPPER"
+          echo "PROJECT_DIR=$(dirname "$WRAPPER")" >> "$GITHUB_ENV"
+
+      - name: Build APK
+        run: |
+          cd "$PROJECT_DIR"
+          ./gradlew assembleDebug
+
+      - name: Collect APK
+        run: |
+          find source -path '*/build/outputs/apk/debug/*.apk' -type f -exec cp {} KOP-IMILK.apk \;
+          test -f KOP-IMILK.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: KOP-IMILK-APK
+          path: KOP-IMILK.apk
